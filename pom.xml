@@ -62,7 +62,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <maven.javadoc.skip>true</maven.javadoc.skip>
         <license.licenseName>gpl_v3</license.licenseName>
-		<springboot.version>3.5.5</springboot.version>
+        <springboot.version>4.0.1</springboot.version>
 
         <lombok.version>1.18.42</lombok.version>
         <jacoco.version>0.8.7</jacoco.version>
