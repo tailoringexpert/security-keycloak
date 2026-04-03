@@ -21,11 +21,13 @@
  */
 package eu.tailoringexpert.auth;
 
-import lombok.NonNull;
-import lombok.extern.log4j.Log4j2;
+import static java.util.Objects.nonNull;
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -34,10 +36,11 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
-import static java.util.Objects.nonNull;
-import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
+import lombok.NonNull;
+import lombok.extern.log4j.Log4j2;
 
 @Log4j2
+@Profile("keycloak")
 @Configuration
 @EnableWebSecurity
 public class KeycloakSecurityConfiguration {
@@ -49,9 +52,8 @@ public class KeycloakSecurityConfiguration {
 
     @Bean
     JWTConverter jwtConverter(@Value("${jwt.auth.converter.principle-attribute}") String principleAttribute,
-                              @Value("${jwt.auth.converter.resource-id}") String resourceId,
-                              @NonNull JwtGrantedAuthoritiesConverter JwtGrantedAuthoritiesConverter
-    ) {
+            @Value("${jwt.auth.converter.resource-id}") String resourceId,
+            @NonNull JwtGrantedAuthoritiesConverter JwtGrantedAuthoritiesConverter) {
         return new JWTConverter(principleAttribute, resourceId, JwtGrantedAuthoritiesConverter);
     }
 
@@ -62,26 +64,20 @@ public class KeycloakSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(
-        @NonNull HttpSecurity http,
-        @NonNull JWTConverter jwtConverter,
-        @Value("${auth.permit-all}") String[] allPermissions,
-        @Value("${auth.authenticated}") String[] authenticatedPath
-    ) throws Exception {
+            @NonNull HttpSecurity http,
+            @NonNull JWTConverter jwtConverter,
+            @Value("${auth.permit-all}") String[] allPermissions,
+            @Value("${auth.authenticated}") String[] authenticatedPath) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(authorize -> {
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authorize -> {
                     authorize.requestMatchers(allPermissions).permitAll();
                     if (nonNull(authenticatedPath) && authenticatedPath.length > 0) {
                         authorize.requestMatchers(authenticatedPath).authenticated();
                     }
-                }
-            )
-            .oauth2ResourceServer(oauth2 ->
-                oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter))
-            )
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(STATELESS)
-            );
+                })
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)))
+                .sessionManagement(session -> session.sessionCreationPolicy(STATELESS));
         return http.build();
     }
 }
