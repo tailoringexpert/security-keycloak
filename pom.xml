@@ -7,7 +7,7 @@
     <groupId>eu.tailoringexpert</groupId>
     <artifactId>tailoringexpert-security-keycloak</artifactId>
     <name>${project.groupId}:${project.artifactId}</name>
-    <version>0.0.3</version>
+    <version>0.0.4-SNAPSHOT</version>
     <description>Default Spring Security configuration</description>
     <packaging>jar</packaging>
 
