@@ -29,7 +29,8 @@ pipeline {
         GIT_CREDENTIALS_ID = 'TAILORINGEXPERT_GITHUB_CREDENTIALS'
         GIT_CREDENTIALS = credentials('TAILORINGEXPERT_GITHUB_CREDENTIALS')
         GPG_SIGNKEY = credentials('GITHUB_GPG_SIGNKEY')
-        NEXUS_CREDENTIALS = credentials('NEXUS_CREDENTIALS')
+        MAVEN_SERVERID = 'tailoringexpert'
+        MAVEN_CREDENTIALS = credentials('MAVEN_CREDENTIALS')
         MAVEN_CUSTOM_CREDENTIALS = credentials('MAVEN_CUSTOM_CREDENTIALS')
         SONAR_TOKEN = credentials('TAILORINGEXPERT_SONAR_TOKEN')
         GIT_REPOSITORY = 'tailoringexpert/security-keycloak.git' 
@@ -39,13 +40,13 @@ pipeline {
         // GPG_VOLUME           gpg key volume
         // GIT_COMMITTER_NAME   name of the git committer
         // GIT_COMMITTER_EMAIL  mail of the git committer
-        // NEXUS_SNAPSHOTURL    url to deploy snapshots to
-        // NEXUS_RELEASEURL     url to deploy releases to
+        // MAVEN_SNAPSHOTURL    url to deploy snapshots to
+        // MAVEN_RELEASEURL     url to deploy releases to
     }
 
     agent {
         docker {
-            image 'tailoringexpert/maven:3.9-eclipse-23'
+            image 'ghcr.io/tailoringexpert/maven:3.9-eclipse-25'
             args '''  
                 -u 501:1000 \
                 -v $GPG_VOLUME:/.gnupg \
@@ -54,10 +55,11 @@ pipeline {
                 -e GIT_CREDENTIALS=$GIT_CREDENTIALS \
                 -e GIT_COMMITTER_NAME=$GIT_COMMITTER_NAME \
                 -e GIT_COMMITTER_EMAIL=$GIT_COMMITTER_EMAIL \
-                -e NEXUS_SNAPSHOTURL=$NEXUS_SNAPSHOTURL \
-                -e NEXUS_RELEASEURL=$NEXUS_RELEASEURL \
-                -e NEXUS_CREDENTIALS_USR=$NEXUS_CREDENTIALS_USR \
-                -e NEXUS_CREDENTIALS_PSW=$NEXUS_CREDENTIALS_PSW \
+                -e MAVEN_SERVERID=$MAVEN_SERVERID \
+                -e MAVEN_SNAPSHOTURL=$MAVEN_SNAPSHOTURL \
+                -e MAVEN_RELEASEURL=$MAVEN_RELEASEURL \
+                -e MAVEN_CREDENTIALS_USR=$MAVEN_CREDENTIALS_USR \
+                -e MAVEN_CREDENTIALS_PSW=$MAVEN_CREDENTIALS_PSW \
                 -e MAVEN_CUSTOM_CREDENTIALS_USR=$MAVEN_CUSTOM_CREDENTIALS_USR \
                 -e MAVEN_CUSTOM_CREDENTIALS_PSW=$MAVEN_CUSTOM_CREDENTIALS_PSW \
                 -e MAVEN_CUSTOM_SNAPSHOTURL=$MAVEN_CUSTOM_SNAPSHOTURL \
@@ -190,11 +192,11 @@ pipeline {
 
                     if (params.DEPLOY || params.RELEASE_BUILD) {
                         // Standard-Deploy
-                        sh "mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${M2_VOLUME}/repository -DskipTests deploy -P tailoringexpert-maven"
+                        sh "mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${M2_VOLUME}/repository -DskipTests deploy"
 
                         // Optionaler Deploy in ein weiteres Repository via Profil
                         if (params.DEPLOY_TO_CUSTOM_REPOSITORY) {
-                            sh "mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${M2_VOLUME}/repository -DskipTests deploy -P custom-maven"
+                            sh "mvn --settings .jenkins/settings.xml -Dmaven.repo.local=${M2_VOLUME}/repository -DskipTests -P '!default,custom-maven' deploy "
                         }
                     } else {
                         sh 'exit 0'
