@@ -67,7 +67,7 @@
         <sonar.token>${SONAR_TOKEN}</sonar.token>
 
         <!-- plugins -->
-        <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.16</jacoco-maven-plugin.version>
 
         <gitflow-maven-plugin.version>1.21.0</gitflow-maven-plugin.version>
         <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
